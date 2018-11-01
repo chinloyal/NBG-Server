@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration monitorinterval="30" status="info" strict="true">
+    <Properties>
+        <Property name="loggerLocation">logs/server.log</Property>
+    </Properties>
+    <Appenders>
+        <!-- General Appenders -->
+        <Appender type="Console" name="ServerConsoleAppender">
+        	<Layout type="PatternLayout" pattern="%d %p %C [SERVER][%t] %m%n" ></Layout>
+        </Appender>
+        <Appender type="File" name="ServerFileAppender" fileName="${loggerLocation}">
+        	<Layout type="PatternLayout" pattern="%d %p %C [SERVER][%t] %m%n" />
+        </Appender>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+        	<AppenderRef ref="ServerConsoleAppender" />
+        	<AppenderRef ref="ServerFileAppender" />
+        </Root>
+    </Loggers>
+</Configuration>
