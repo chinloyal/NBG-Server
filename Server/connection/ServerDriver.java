@@ -55,10 +55,5 @@ public class ServerDriver extends JFrame implements ActionListener {
 				btnStop.setEnabled(false);
 			}
 		}
-		
-		
 	}
-	
-	
-
 }

@@ -24,7 +24,7 @@ public class UserProvider extends SQLProvider<User> {
 
 	@Override
 	protected void initDatabase() {
-		// TODO Auto-generated method stub
+		
 		
 	}
 
@@ -54,12 +54,10 @@ public class UserProvider extends SQLProvider<User> {
 				users.add(user);
 			}
 			
-			logger.debug("Retrieved " + users.size() + " users.");
+			logger.debug("Retrieved " + users.size() + " user(s).");
 		}catch(SQLException e) {
 			logger.error("Failed to execute select all query for Table: " + TABLE_NAME);
 		}
-		
-		
 		
 		return users;
 	}
