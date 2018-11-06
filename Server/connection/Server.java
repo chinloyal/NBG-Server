@@ -72,27 +72,13 @@ public class Server implements Connection<Response> {
 								send(new Response(false));
 							}
 
-						} else if (request.getAction().equals("login")) { // LOGIN
-
-							String[] credentials = (String[]) request.getData();
-							String email = credentials[0];
-							String pwd = credentials[1];
+						} 
+						else if(request.getAction().equals("login")){
+							String credentials[] = (String[]) request.getData();
 							
-							UserProvider chkLogin = new UserProvider();
-							List<User> users = chkLogin.selectAll();
-					
-							boolean matched = false;
-							for (User u : users) {
-								if (u.getEmail().equals(email)) {
-									if (BCrypt.checkpw(pwd, u.getPassword())) { 
-										matched = true;
-										break;
-									}
-								} else {
-									matched = false;
-								}
-							} 
-							send(new Response(matched));
+							UserProvider provider = new UserProvider();
+						
+							send(new Response(provider.authenticate(credentials[0], credentials[1])));
 						}
 					} catch (ClassNotFoundException e) {
 						logger.error("Cannot locate class.");
