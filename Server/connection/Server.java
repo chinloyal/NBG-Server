@@ -74,21 +74,17 @@ public class Server implements Connection<Response> {
 
 						} else if (request.getAction().equals("login")) { // LOGIN
 
-							List<String> credentials = (List<String>) request.getData();
-							String email = credentials.get(0);
-							String pwd = credentials.get(1);
+							String[] credentials = (String[]) request.getData();
+							String email = credentials[0];
+							String pwd = credentials[1];
 							
 							UserProvider chkLogin = new UserProvider();
 							List<User> users = chkLogin.selectAll();
-							
-							/*
-							 * The fault with logging in lies somewhere in the statement that checks if the passwords match.
-							 * */
 					
 							boolean matched = false;
 							for (User u : users) {
 								if (u.getEmail().equals(email)) {
-									if (BCrypt.checkpw(pwd, u.getPassword())) { // When this check is done, it returns false.
+									if (BCrypt.checkpw(pwd, u.getPassword())) { 
 										matched = true;
 										break;
 									}
@@ -97,7 +93,6 @@ public class Server implements Connection<Response> {
 								}
 							} 
 							send(new Response(matched));
-
 						}
 					} catch (ClassNotFoundException e) {
 						logger.error("Cannot locate class.");
