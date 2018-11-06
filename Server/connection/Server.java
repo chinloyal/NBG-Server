@@ -71,7 +71,6 @@ public class Server implements Connection<Response> {
 							} else {
 								send(new Response(false));
 							}
-
 						} 
 						else if(request.getAction().equals("login")){
 							String credentials[] = (String[]) request.getData();
