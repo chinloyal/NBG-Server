@@ -68,6 +68,12 @@ public class Server implements Connection<Response> {
 								send(new Response(false));
 							}
 							
+						}else if(request.getAction().equals("login")){
+							String credentials[] = (String[]) request.getData();
+							
+							UserProvider provider = new UserProvider();
+						
+							send(new Response(provider.authenticate(credentials[0], credentials[1])));
 						}
 					} catch (ClassNotFoundException e) {
 						logger.error("Cannot locate class.");
