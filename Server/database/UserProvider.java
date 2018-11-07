@@ -115,7 +115,7 @@ public class UserProvider extends SQLProvider<User> {
 			
 			return userRowsAffected;
 		}catch(SQLException e) {
-			logger.error("Failed to store user", e.getMessage());
+			logger.error("Failed to store user.", e.getMessage());
 //			e.printStackTrace();
 		}
 		
@@ -137,10 +137,69 @@ public class UserProvider extends SQLProvider<User> {
 			return false;
 			
 		} catch (SQLException e) {
-			logger.error("Fail to get user credentials", e.getMessage());
+			logger.error("Failed to get user credentials.", e.getMessage());
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	public User getByEmail(String email) {
+		User user = null;
+		
+		try {
+			user = new User();
+			
+			String query = "SELECT * FROM " + TABLE_NAME + " WHERE email = ?";
+			logger.debug("Retrieving Customer with email: "+email);
+			
+			preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setString(1, email);
+			resultSet = preparedStatement.executeQuery();
+	
+			if(resultSet.next()) {
+				User temp = new User(
+					resultSet.getInt("id"),
+					resultSet.getString("first_name"),
+					resultSet.getString("last_name"),
+					resultSet.getString("type"),
+					resultSet.getString("email"),
+					resultSet.getString("password")
+				);
+				user = temp;
+			}
+			
+			logger.debug("Retrieved customer with email: "+email);
+		}catch(SQLException e) {
+			logger.error("Failed to execute 'Get User By Email' query for Table: " + TABLE_NAME);
+		}
+		
+		return user;
+	}
+	
+	public String getCusPhoto(User customer) {
+		String photo = null;
+		
+		try {
+			
+			String query = "SELECT * FROM photos WHERE user_id = ?";
+			logger.debug("Retrieving Photo with Customer ID: "+customer.getId());
+			
+			preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setInt(1, customer.getId());
+			
+			resultSet = preparedStatement.executeQuery();
+	
+			if(resultSet.next()) {
+				
+				photo = resultSet.getString("file");
+			}
+			
+			logger.debug("Retrieved photo with customer ID: "+customer.getId());
+		}catch(SQLException e) {
+			logger.error("Failed to execute 'Get Customer Photo' query for Table: " + TABLE_NAME);
+		}
+		
+		return photo;
 	}
 
 }

@@ -1,6 +1,6 @@
 package connection;
 
-import java.io.IOException;
+import java.io.IOException; 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -76,8 +76,28 @@ public class Server implements Connection<Response> {
 							String credentials[] = (String[]) request.getData();
 							
 							UserProvider provider = new UserProvider();
-						
-							send(new Response(provider.authenticate(credentials[0], credentials[1])));
+							
+							boolean success = provider.authenticate(credentials[0], credentials[1]);
+							
+							if (success) { // If login is successful, send success, the customer object, and a message
+								User customer = provider.getByEmail(credentials[0]);
+								send(new Response(success,customer,"This customer successfully logged in!"));
+							}else { // If login was NOT successful, send success only (false)
+								send(new Response(success));
+							}
+						}
+						else if(request.getAction().equals("get_customer_photo")) {
+							User customer = (User)request.getData();
+							
+							UserProvider cusInfo = new UserProvider();
+							String photo = cusInfo.getCusPhoto(customer);
+							
+							if (photo!=null) {
+								send(new Response(true, photo, "Customer Photo Retrieved"));
+							}else {
+								send(new Response(false, "Customer Photo NOT Retrieved"));
+							}
+							
 						}
 					} catch (ClassNotFoundException e) {
 						logger.error("Cannot locate class.");
