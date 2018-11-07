@@ -12,17 +12,18 @@ import org.apache.logging.log4j.Logger;
 import communication.Request;
 import communication.Response;
 import interfaces.Connection;
+import jobs.HandleRequests;
 import models.User;
 import database.UserProvider;
 
 
 public class Server implements Connection<Response> {
 	private ServerSocket serverSocket;
-	private Socket socket;
-	private ObjectOutputStream oos;
-	private ObjectInputStream ois;
+	protected static Socket socket;
+	protected static ObjectOutputStream oos;
+	protected static ObjectInputStream ois;
 	
-	private Logger logger  = LogManager.getLogger(Server.class);
+	protected Logger logger  = LogManager.getLogger(Server.class);
 	
 	public Server() {
 		start();
@@ -52,33 +53,13 @@ public class Server implements Connection<Response> {
 			while(true){
 				logger.info("Waiting for requests...");
 				socket = serverSocket.accept();
-				getStreams();
-				Request request = null;
 				
-				do{
-					try {
-						request = (Request) ois.readObject();
-						
-						if(request.getAction().equals("register_user")){
-							UserProvider provider = new UserProvider();
-							
-							if(provider.store((User) request.getData()) > 0) {
-								send(new Response(true, "Customer has been registered"));
-							}else {
-								send(new Response(false));
-							}
-							
-						}
-					} catch (ClassNotFoundException e) {
-						logger.error("Cannot locate class.");
-					}catch(ClassCastException e) {
-						logger.error("Could not cast class.");
-					}
-				}while(!request.getAction().equals("EXIT"));
-				closeConnection();
+				Thread job = new Thread(new HandleRequests());
+				
+				job.start();
 			}
 		}catch(IOException e){
-			logger.error("Could not accept connection");
+			logger.warn("Could not accept connection");
 		}catch(NullPointerException e) {
 			logger.error("The request is empty (null).");
 		}
@@ -101,12 +82,12 @@ public class Server implements Connection<Response> {
 	public void stop() {
 		try {
 			serverSocket.close();
+			logger.info("Server has been stopped.");
 		}catch(IOException e) {
 			logger.error("Could not close server socket.");
 		}
 	}
 
-	@Override
 	public void send(Response data) throws IOException {
 		oos.writeObject(data);
 	}
