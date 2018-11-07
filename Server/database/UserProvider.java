@@ -122,5 +122,26 @@ public class UserProvider extends SQLProvider<User> {
 		
 		return 0;
 	}
+	
+	public boolean authenticate(String email, String userPassword) {
+		try {
+			String query = "Select * from " + TABLE_NAME + " where email = ?";
+			logger.debug("Email: "+ email + "Password: "+ userPassword);
+			preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setString(1, email);
+			resultSet = preparedStatement.executeQuery();
+			if(resultSet.next()) {
+				
+				return BCrypt.checkpw(userPassword, resultSet.getString("password"));
+			}
+			
+			return false;
+			
+		} catch (SQLException e) {
+			logger.error("Fail to get user credentials", e.getMessage());
+			e.printStackTrace();
+		}
+		return false;
+	}
 
 }
