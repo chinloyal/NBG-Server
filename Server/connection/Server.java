@@ -97,7 +97,13 @@ public class Server implements Connection<Response> {
 							}else {
 								send(new Response(false, "Customer Photo NOT Retrieved"));
 							}
+						}
+						else if (request.getAction().equals("store_message")) {
+							List<String> cusMessage = (List<String>)request.getData();
 							
+							UserProvider storeMessage = new UserProvider();
+							boolean success = storeMessage.storeMessage(cusMessage);
+							send(new Response(success));
 						}
 					} catch (ClassNotFoundException e) {
 						logger.error("Cannot locate class.");

@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -64,24 +65,20 @@ public class UserProvider extends SQLProvider<User> {
 			user = new User();
 
 			String query = "SELECT * FROM " + TABLE_NAME + " WHERE id = ?";
-			logger.debug("Retrieving Customer with ID: " +id);
+			logger.debug("Retrieving Customer with ID: " + id);
 
 			preparedStatement = connection.prepareStatement(query);
 			preparedStatement.setInt(1, id);
 			resultSet = preparedStatement.executeQuery();
 
 			if (resultSet.next()) {
-				User temp = new User(
-						resultSet.getInt("id"),
-						resultSet.getString("first_name"),
-						resultSet.getString("last_name"), 
-						resultSet.getString("type"), 
-						resultSet.getString("email"),
+				User temp = new User(resultSet.getInt("id"), resultSet.getString("first_name"),
+						resultSet.getString("last_name"), resultSet.getString("type"), resultSet.getString("email"),
 						resultSet.getString("password"));
 				user = temp;
 			}
 
-			logger.debug("Retrieved Customer with ID: " +id);
+			logger.debug("Retrieved Customer with ID: " + id);
 		} catch (SQLException e) {
 			logger.error("Failed to execute 'Get User By Id' query for Table: " + TABLE_NAME);
 		}
@@ -217,4 +214,55 @@ public class UserProvider extends SQLProvider<User> {
 		return photo;
 	}
 
+	public boolean storeMessage(List<String> cusMessage) {
+		boolean success = false;
+		String email = cusMessage.get(0);
+		String message = cusMessage.get(1);
+		String queryType = cusMessage.get(2);
+		int query_type_id = -1;
+
+		try {
+			// Add Query to query_type Table
+			String query = "INSERT INTO query_type (name) VALUES(?)";
+			preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setString(1, queryType);
+
+			int numRowsAffected = preparedStatement.executeUpdate();
+			
+			if (numRowsAffected>0) {
+				String query3= "SELECT * FROM query_type WHERE id = (SELECT MAX(id) FROM query_type WHERE name = '"+queryType+"')";
+				preparedStatement = connection.prepareStatement(query3);
+				resultSet = preparedStatement.executeQuery();
+				
+				if (resultSet.next()) {
+					query_type_id = resultSet.getInt(1);
+				}
+				
+				// Add Message to messages table
+				User user = getByEmail(email);
+			
+				String query2 = "INSERT INTO messages (user_id, body, query_type_id) VALUES(?, ?, ?)";
+				preparedStatement = connection.prepareStatement(query2);
+
+				preparedStatement.setInt(1, user.getId());
+				preparedStatement.setString(2, message);
+				preparedStatement.setInt(3, query_type_id );
+
+				int numRowsAffected2 = preparedStatement.executeUpdate();
+
+				if (numRowsAffected2>0) {
+					success = true;
+				}
+			}
+			
+			// First Query Failed, query was NOT added to query_type table
+			if (query_type_id == -1) {
+				success = false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			logger.error("Failed to Store Message.", e.getMessage());
+		}
+		return success;
+	}
 }
