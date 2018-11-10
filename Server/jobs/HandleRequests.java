@@ -3,6 +3,7 @@ package jobs;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.util.List;
 
 import communication.Request;
 import communication.Response;
@@ -110,6 +111,14 @@ public class HandleRequests extends Server implements Runnable {
 							
 							send(new Response(false, message));
 						}
+
+					case "store_message":
+						List<String> cusMessage = (List<String>)request.getData();
+
+						UserProvider storeMessage = new UserProvider();
+						boolean success = storeMessage.storeMessage(cusMessage);
+						send(new Response(success));
+						break;
 					default:
 						send(new Response(false, "Invalid server action"));
 						break;

@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -29,8 +30,7 @@ public class UserProvider extends SQLProvider<User> {
 
 	@Override
 	protected void initDatabase() {
-		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -38,37 +38,29 @@ public class UserProvider extends SQLProvider<User> {
 		List<User> users = null;
 		try {
 			users = new ArrayList<User>();
-			
+
 			String query = "SELECT * FROM " + TABLE_NAME;
 			statement = connection.createStatement();
-			
+
 			logger.info("Executing " + query);
-			
+
 			resultSet = statement.executeQuery(query);
-			
-			while(resultSet.next()) {
-				User user = new User(
-					resultSet.getInt("id"),
-					resultSet.getString("first_name"),
-					resultSet.getString("last_name"),
-					resultSet.getString("type"),
-					resultSet.getString("email"),
-					resultSet.getString("password")
-				);
-				
+
+			while (resultSet.next()) {
+				User user = new User(resultSet.getInt("id"), resultSet.getString("first_name"),
+						resultSet.getString("last_name"), resultSet.getString("type"), resultSet.getString("email"),
+						resultSet.getString("password"));
+
 				users.add(user);
 			}
-			
-			logger.debug("Retrieved " + users.size() + " users.");
-		}catch(SQLException e) {
+
+			logger.debug("Retrieved " + users.size() + " user(s).");
+		} catch (SQLException e) {
 			logger.error("Failed to execute select all query for Table: " + TABLE_NAME);
 		}
-		
-		
-		
+
 		return users;
 	}
-
 
 	public User getBy(String field, String value) {
 		try {
@@ -129,39 +121,38 @@ public class UserProvider extends SQLProvider<User> {
 	@Override
 	public int store(User user) {
 		try {
-			String query = "INSERT INTO " + TABLE_NAME + 
-							"(first_name, last_name, email, type, password) " +
-							"VALUES(?, ?, ?, ?, ?)";
+			String query = "INSERT INTO " + TABLE_NAME + "(first_name, last_name, email, type, password) "
+					+ "VALUES(?, ?, ?, ?, ?)";
 			preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-			
+
 			preparedStatement.setString(1, user.getFirstName());
 			preparedStatement.setString(2, user.getLastName());
 			preparedStatement.setString(3, user.getEmail());
 			preparedStatement.setString(4, user.getType());
 			preparedStatement.setString(5, BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
-			
+
 			int userRowsAffected = preparedStatement.executeUpdate();
-			
-			if(user.getType().equals("customer") && user.getPhoto() != null) {
+
+			if (user.getType().equals("customer") && user.getPhoto() != null) {
 				Photo profilePhoto = user.getPhoto();
 				int user_id = getLastInsertedId(preparedStatement);
-				
-				query = "INSERT INTO photos (file, user_id) "+
-						"VALUES ('"+ profilePhoto.getName() +"', "+ user_id +")";
+
+				query = "INSERT INTO photos (file, user_id) " + "VALUES ('" + profilePhoto.getName() + "', " + user_id
+						+ ")";
 				statement = connection.createStatement();
-				
+
 				statement.executeUpdate(query);
 			}
-			
+
 			return userRowsAffected;
-		}catch(SQLException e) {
-			logger.error("Failed to store user", e.getMessage());
-//			e.printStackTrace();
+		} catch (SQLException e) {
+			logger.error("Failed to store user.", e.getMessage());
+			// e.printStackTrace();
 		}
-		
+
 		return 0;
 	}
-	
+
 	public boolean authenticate(String email, String userPassword) {
 		User user = getBy("email", email);
 		if(user != null) {
@@ -207,4 +198,55 @@ public class UserProvider extends SQLProvider<User> {
 		return user;
 	}
 
+	public boolean storeMessage(List<String> cusMessage) {
+		boolean success = false;
+		String email = cusMessage.get(0);
+		String message = cusMessage.get(1);
+		String queryType = cusMessage.get(2);
+		int query_type_id = -1;
+
+		try {
+			// Add Query to query_type Table
+			String query = "INSERT INTO query_type (name) VALUES(?)";
+			preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setString(1, queryType);
+
+			int numRowsAffected = preparedStatement.executeUpdate();
+			
+			if (numRowsAffected>0) {
+				String query3= "SELECT * FROM query_type WHERE id = (SELECT MAX(id) FROM query_type WHERE name = '"+queryType+"')";
+				preparedStatement = connection.prepareStatement(query3);
+				resultSet = preparedStatement.executeQuery();
+				
+				if (resultSet.next()) {
+					query_type_id = resultSet.getInt(1);
+				}
+				
+				// Add Message to messages table
+				User user = getSession();
+			
+				String query2 = "INSERT INTO messages (user_id, body, query_type_id) VALUES(?, ?, ?)";
+				preparedStatement = connection.prepareStatement(query2);
+
+				preparedStatement.setInt(1, user.getId());
+				preparedStatement.setString(2, message);
+				preparedStatement.setInt(3, query_type_id );
+
+				int numRowsAffected2 = preparedStatement.executeUpdate();
+
+				if (numRowsAffected2>0) {
+					success = true;
+				}
+			}
+			
+			// First Query Failed, query was NOT added to query_type table
+			if (query_type_id == -1) {
+				success = false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			logger.error("Failed to Store Message.", e.getMessage());
+		}
+		return success;
+	}
 }

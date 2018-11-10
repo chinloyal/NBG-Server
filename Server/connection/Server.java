@@ -1,6 +1,6 @@
 package connection;
 
-import java.io.IOException;
+import java.io.IOException; 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -13,44 +13,41 @@ import communication.Response;
 import interfaces.Connection;
 import jobs.HandleRequests;
 
-
 public class Server implements Connection<Response> {
 	private ServerSocket serverSocket;
-	protected static Socket socket;
-	protected static ObjectOutputStream oos;
-	protected static ObjectInputStream ois;
+	protected Socket socket;
+	protected ObjectOutputStream oos;
+	protected ObjectInputStream ois;
 	
 	protected Logger logger  = LogManager.getLogger(Server.class);
-	
 	public Server() {
 		start();
 	}
-	
-	public void getStreams() throws IOException{
+
+	public void getStreams() throws IOException {
 		oos = new ObjectOutputStream(socket.getOutputStream());
 		ois = new ObjectInputStream(socket.getInputStream());
 	}
-	
-	private void start(){
-		try{
+
+	private void start() {
+		try {
 			serverSocket = new ServerSocket(9000, 1);
 			logger.info("Server is starting...");
-		}catch(IOException e){
+		} catch (IOException e) {
 			logger.error("Could not initialize server socket", e.getMessage());
 		}
 	}
-	
-	public void waitForRequests(){
-		if(serverSocket == null){
+
+	public void waitForRequests() {
+		if (serverSocket == null) {
 			logger.warn("The server has not been initialized");
 			return;
 		}
-		
-		try{
-			while(true){
+
+		try {
+			while (true) {
 				logger.info("Waiting for requests...");
 				socket = serverSocket.accept();
-				
 				Thread job = new Thread(new HandleRequests());
 				
 				job.start();
@@ -61,21 +58,21 @@ public class Server implements Connection<Response> {
 			logger.error("The request is empty (null).");
 		}
 	}
-	
-	public void closeConnection(){
-		try{
-			if(ois != null)
+
+	public void closeConnection() {
+		try {
+			if (ois != null)
 				ois.close();
-			if(oos != null)
+			if (oos != null)
 				oos.close();
-			if(socket != null)
+			if (socket != null)
 				socket.close();
 			logger.info("Server closed connection.");
-		}catch(NullPointerException | IOException e){
+		} catch (NullPointerException | IOException e) {
 			logger.error("Could not close all connections");
 		}
 	}
-	
+
 	public void stop() {
 		try {
 			serverSocket.close();
