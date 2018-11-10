@@ -13,6 +13,9 @@ logs/
 Client/storage/images/*.jpg
 Client/storage/images/*.png
 Client/storage/images/*.jpeg
+session.dat
+Server/session.dat
+
 # External tool builders
 .externalToolBuilders/
 

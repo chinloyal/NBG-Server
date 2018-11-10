@@ -1,5 +1,10 @@
 package database;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -14,6 +19,7 @@ import models.User;
 
 public class UserProvider extends SQLProvider<User> {
 	private static final String TABLE_NAME = "users";
+	private static final String SESSION_FILE = "session.dat";
 	//Implement a logger for every provider
 	private static Logger logger = LogManager.getLogger(UserProvider.class);
 
@@ -63,9 +69,42 @@ public class UserProvider extends SQLProvider<User> {
 		return users;
 	}
 
-	@Override
-	public User get(int id) {
-		// TODO Auto-generated method stub
+
+	public User getBy(String field, String value) {
+		try {
+			String query = "SELECT u.*, p.file FROM " + TABLE_NAME + " u" +
+							" LEFT JOIN photos p" +
+							" ON p.user_id = u.id" +
+							" WHERE " + field + " = ?";
+			preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setString(1, value);
+			
+			resultSet = preparedStatement.executeQuery();
+			
+			if(resultSet.next()) {
+				User user = new User();
+				
+				user.setId(resultSet.getInt("id"));
+				user.setEmail(resultSet.getString("email"));
+				user.setFirstName(resultSet.getString("first_name"));
+				user.setLastName(resultSet.getString("last_name"));
+				user.setPassword(resultSet.getString("password"));
+				user.setType(resultSet.getString("type"));
+				
+				if(user.getType().equals("customer")) {
+					Photo photo = new Photo(resultSet.getString("file"));
+					
+					user.setPhoto(photo);
+				}
+				
+				return user;
+			}else {
+				return null;
+			}
+			
+		}catch(SQLException e) {
+			logger.error("Could not get item from the " + TABLE_NAME + " table with field: " + field + " and value: "+ value);
+		}
 		return null;
 	}
 
@@ -124,24 +163,48 @@ public class UserProvider extends SQLProvider<User> {
 	}
 	
 	public boolean authenticate(String email, String userPassword) {
-		try {
-			String query = "Select * from " + TABLE_NAME + " where email = ?";
-			logger.debug("Email: "+ email + "Password: "+ userPassword);
-			preparedStatement = connection.prepareStatement(query);
-			preparedStatement.setString(1, email);
-			resultSet = preparedStatement.executeQuery();
-			if(resultSet.next()) {
-				
-				return BCrypt.checkpw(userPassword, resultSet.getString("password"));
+		User user = getBy("email", email);
+		if(user != null) {
+			ObjectOutputStream oos = null;
+			try {
+				oos = new ObjectOutputStream(new FileOutputStream(SESSION_FILE));
+				oos.writeObject(user);
+
+			} catch (IOException e) {
+				logger.error("Could not store session.");
+			}finally {
+				try {
+					oos.close();
+				}catch(IOException | NullPointerException e) {
+					logger.error("Could not close session output stream.");
+				}
+
 			}
-			
-			return false;
-			
-		} catch (SQLException e) {
-			logger.error("Fail to get user credentials", e.getMessage());
-			e.printStackTrace();
+
+			return BCrypt.checkpw(userPassword, user.getPassword());
 		}
 		return false;
+	}
+	
+	public static User getSession() {
+		User user = null;
+		ObjectInputStream ois = null;
+		try {
+			ois = new ObjectInputStream(new FileInputStream(SESSION_FILE));
+			
+			user = (User) ois.readObject();
+		}catch(IOException | ClassNotFoundException | ClassCastException e) {
+			logger.error("Could not retrieve session.");
+		}finally {
+			try {
+				ois.close();
+			}catch(IOException | NullPointerException e) {
+				logger.error("Could not close session input stream.");
+			}
+
+		}
+		
+		return user;
 	}
 
 }

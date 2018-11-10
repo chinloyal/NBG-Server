@@ -49,11 +49,12 @@ public abstract class SQLProvider<T> {
 	public abstract List<T> selectAll();
 	
 	/**
-	 * Get a row of data from a table
-	 * @param id - ID of model in table
+	 * Get a single row of data from a table
+	 * @param field - Field in table 
+	 * @param value - Value to get by
 	 * @return
 	 */
-	public abstract T get(int id);
+	public abstract T getBy(String field, String value);
 	
 	public abstract int update(T item, int id);
 	

@@ -9,12 +9,9 @@ import java.net.Socket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import communication.Request;
 import communication.Response;
 import interfaces.Connection;
 import jobs.HandleRequests;
-import models.User;
-import database.UserProvider;
 
 
 public class Server implements Connection<Response> {
