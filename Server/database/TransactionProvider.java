@@ -67,37 +67,6 @@ public class TransactionProvider extends SQLProvider<Transaction> {
 		return 0;
 	}
 
-	public boolean transfer(Transaction transaction) {
-		
-		try {
-			String query = "INSERT INTO " + TABLE_NAME + 
-						" (from_id, to_id, transaction_type_id, amount, description, card_type) "+
-						"VALUES (?, ?, ?, ?, ?, ?)";
-			preparedStatement = connection.prepareStatement(query);
-			UserProvider uProvider = new UserProvider();
-			User receiver = uProvider.getBy("email", transaction.getReceiver());
-			
-			if(receiver != null) {
-			
-				preparedStatement.setInt(1, transaction.getSender());
-				preparedStatement.setInt(2, receiver.getId());
-				preparedStatement.setInt(3, 1); // TRANSFER id
-				preparedStatement.setDouble(4, transaction.getAmount());
-				preparedStatement.setString(5, transaction.getDescription());
-				preparedStatement.setString(6, "credit");
-
-
-				return preparedStatement.executeUpdate() > 0;
-			}else {
-				return false;
-			}
-			
-		}catch(SQLException e) {
-			logger.error("Could not execute transaction.");
-		}
-		return false;
-	}
-
 	public List<Transaction> selectAll() {
 		// TODO Auto-generated method stub
 		return null;
