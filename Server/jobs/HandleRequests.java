@@ -3,17 +3,33 @@ package jobs;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.util.List;
 
 import communication.Request;
 import communication.Response;
-import connection.Server;
 import database.TransactionProvider;
 import database.UserProvider;
+import interfaces.Connection;
 import models.Transaction;
 import models.User;
 
-public class HandleRequests extends Server implements Runnable {
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+public class HandleRequests implements Runnable, Connection<Response> {
+
+	private Socket socket;
+	private ObjectOutputStream oos;
+	private ObjectInputStream ois;
+	
+	private static Logger logger = LogManager.getLogger(HandleRequests.class);
+	public HandleRequests(Socket socket){
+		this.socket = socket;
+	}
+	
 	public void run() {
 		try {
 			getStreams();
@@ -21,7 +37,7 @@ public class HandleRequests extends Server implements Runnable {
 
 			do{
 				try {
-					request = (Request) ois.readObject();
+					request = read();
 					
 					switch(request.getAction()) {
 					case "register_user":
@@ -136,6 +152,33 @@ public class HandleRequests extends Server implements Runnable {
 		}catch(IOException e) {
 			logger.error("Could not close or get streams.");
 		}
+	}
+	
+	public void getStreams() throws IOException {
+		oos = new ObjectOutputStream(socket.getOutputStream());
+		ois = new ObjectInputStream(socket.getInputStream());
+	}
+	
+	public void closeConnection() {
+		try {
+			if (ois != null)
+				ois.close();
+			if (oos != null)
+				oos.close();
+			if (socket != null)
+				socket.close();
+			logger.info("Server closed connection.");
+		} catch (NullPointerException | IOException e) {
+			logger.error("Could not close all connections");
+		}
+	}
+	
+	public void send(Response data) throws IOException {
+		oos.writeObject(data);
+	}
+	
+	public Request read() throws IOException, ClassNotFoundException {
+		return (Request) ois.readObject();
 	}
 
 }

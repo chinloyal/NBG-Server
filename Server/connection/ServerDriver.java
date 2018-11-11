@@ -49,7 +49,6 @@ public class ServerDriver extends JFrame implements ActionListener {
 			btnStop.setEnabled(true);
 		}else if(event.getSource().equals(btnStop)) {
 			if(server != null) {
-				server.closeConnection();
 				server.stop();
 				
 				btnStart.setEnabled(true);

@@ -1,32 +1,19 @@
 package connection;
 
-import java.io.IOException; 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import communication.Response;
-import interfaces.Connection;
 import jobs.HandleRequests;
 
-public class Server implements Connection<Response> {
+public class Server {
 	private ServerSocket serverSocket;
-	protected Socket socket;
-	protected ObjectOutputStream oos;
-	protected ObjectInputStream ois;
+	private static Logger logger = LogManager.getLogger(Server.class);
 	
-	protected Logger logger  = LogManager.getLogger(Server.class);
 	public Server() {
 		start();
-	}
-
-	public void getStreams() throws IOException {
-		oos = new ObjectOutputStream(socket.getOutputStream());
-		ois = new ObjectInputStream(socket.getInputStream());
 	}
 
 	private void start() {
@@ -47,8 +34,8 @@ public class Server implements Connection<Response> {
 		try {
 			while (true) {
 				logger.info("Waiting for requests...");
-				socket = serverSocket.accept();
-				Thread job = new Thread(new HandleRequests());
+				Socket socket = serverSocket.accept();
+				Thread job = new Thread(new HandleRequests(socket));
 				
 				job.start();
 			}
@@ -58,21 +45,7 @@ public class Server implements Connection<Response> {
 			logger.error("The request is empty (null).");
 		}
 	}
-
-	public void closeConnection() {
-		try {
-			if (ois != null)
-				ois.close();
-			if (oos != null)
-				oos.close();
-			if (socket != null)
-				socket.close();
-			logger.info("Server closed connection.");
-		} catch (NullPointerException | IOException e) {
-			logger.error("Could not close all connections");
-		}
-	}
-
+	
 	public void stop() {
 		try {
 			serverSocket.close();
@@ -80,9 +53,5 @@ public class Server implements Connection<Response> {
 		}catch(IOException e) {
 			logger.error("Could not close server socket.");
 		}
-	}
-
-	public void send(Response data) throws IOException {
-		oos.writeObject(data);
 	}
 }

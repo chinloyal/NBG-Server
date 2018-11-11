@@ -26,11 +26,24 @@ public class UserProvider extends SQLProvider<User> {
 
 	public UserProvider() {
 		super();
+//		initDatabase();
 	}
 
 	@Override
 	protected void initDatabase() {
-
+		try {
+			String query = "" +
+					"INSERT IGNORE INTO `query_type`(`id`, `name`) VALUES \r\n" + 
+					"(1, 'balance inquiry'), \r\n" + 
+					"(2, 'transfer'), \r\n" + 
+					"(3, 'payment'), \r\n" + 
+					"(4, 'support'), \r\n" + 
+					"(5, 'other')";
+			statement = connection.createStatement();
+			statement.executeUpdate(query);
+		}catch(SQLException e) {
+			logger.error("Unable to init database.");
+		}
 	}
 
 	@Override
@@ -200,51 +213,50 @@ public class UserProvider extends SQLProvider<User> {
 
 	public boolean storeMessage(List<String> cusMessage) {
 		boolean success = false;
-		String email = cusMessage.get(0);
 		String message = cusMessage.get(1);
 		String queryType = cusMessage.get(2);
 		int query_type_id = -1;
 
 		try {
-			// Add Query to query_type Table
+			// There's no need to add query types to the table every time you send a message, just add the query types to the database manually
+			/*// Add Query to query_type Table
 			String query = "INSERT INTO query_type (name) VALUES(?)";
 			preparedStatement = connection.prepareStatement(query);
 			preparedStatement.setString(1, queryType);
 
-			int numRowsAffected = preparedStatement.executeUpdate();
+			int numRowsAffected = preparedStatement.executeUpdate();*/
 			
-			if (numRowsAffected>0) {
-				String query3= "SELECT * FROM query_type WHERE id = (SELECT MAX(id) FROM query_type WHERE name = '"+queryType+"')";
-				preparedStatement = connection.prepareStatement(query3);
-				resultSet = preparedStatement.executeQuery();
-				
-				if (resultSet.next()) {
-					query_type_id = resultSet.getInt(1);
-				}
-				
+			String query3= "SELECT id FROM query_type WHERE name = ?";
+			preparedStatement = connection.prepareStatement(query3);
+			preparedStatement.setString(1, queryType);
+			
+			resultSet = preparedStatement.executeQuery();
+
+			if (resultSet.next()) {
+				query_type_id = resultSet.getInt(1);
+			}
+			
+			if(query_type_id != -1) {
 				// Add Message to messages table
 				User user = getSession();
-			
+
 				String query2 = "INSERT INTO messages (user_id, body, query_type_id) VALUES(?, ?, ?)";
 				preparedStatement = connection.prepareStatement(query2);
 
 				preparedStatement.setInt(1, user.getId());
 				preparedStatement.setString(2, message);
-				preparedStatement.setInt(3, query_type_id );
+				preparedStatement.setInt(3, query_type_id);
 
 				int numRowsAffected2 = preparedStatement.executeUpdate();
 
 				if (numRowsAffected2>0) {
 					success = true;
-				}
-			}
-			
-			// First Query Failed, query was NOT added to query_type table
-			if (query_type_id == -1) {
+				}			
+			}else {
 				success = false;
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			success = false;
 			logger.error("Failed to Store Message.", e.getMessage());
 		}
 		return success;
