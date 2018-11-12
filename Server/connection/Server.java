@@ -69,13 +69,21 @@ public class Server implements Connection<Response> {
 								send(new Response(false));
 							}
 							
-						}else if(request.getAction().equals("SumDebitBP")){
+						}else if(request.getAction().equals("values_for_chart")){
+							System.out.println("yes");
 							ManagerProvider mprovider = new ManagerProvider();
-							if(mprovider.SumDebitBP() > 0)
+							System.out.println((String)request.getData());
+							
+							double val = mprovider.TransTypeGraph((String)request.getData());
+							System.out.println(val + "yes");
+							if( val > 0)
 							{
-								send(new Response(true, new String(mprovider.SumDebitBP() + ""), ""));
+								Response res = new Response(true);
+								res.setData(val);
+								send(res);
 							}
 							else {
+								System.out.println(val);
 								send(new Response(false));
 							}
 						}

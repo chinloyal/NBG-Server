@@ -57,131 +57,112 @@ public class ManagerProvider extends SQLProvider
 		// TODO Auto-generated method stub
 		return 0;
 	}
+	public double TransTypeGraph(String type)
+	{
+		try
+		{
+		String query = "";
+		System.out.println(type);
+		switch(type) 
+		{
+		case "SumDebitBP" :  query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'debit' AND transaction_type_id = 2";
+		statement = connection.createStatement();
+		
+		resultSet = statement.executeQuery(query);
 
-	public double SumDebitBP()
-	{
-		try
+		if(resultSet.next())
 		{
-		String query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'debit' AND transaction_type_id = 2";
+			return resultSet.getDouble(1);
+		}
+
+		case "SumDebitT" :  query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'debit' AND transaction_type_id = 3";
 		statement = connection.createStatement();
 		
 		resultSet = statement.executeQuery(query);
-		
+
 		if(resultSet.next())
 		{
 			return resultSet.getDouble(1);
 		}
 		
-		}catch(SQLException e)
-		{
-			logger.error("Unable to execute query");
-		}
-		return 0;
-		
-	}
-	public double SumDebitT()
-	{
-		try
-		{
-		String query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'debit' AND transaction_type_id = 3";
+		case "SumDebitA" :  query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'debit' AND transaction_type_id = 1";
 		statement = connection.createStatement();
 		
 		resultSet = statement.executeQuery(query);
-		
+
 		if(resultSet.next())
 		{
 			return resultSet.getDouble(1);
 		}
 		
-		}catch(SQLException e)
-		{
-			logger.error("Unable to execute query");
-		}
-		return 0;
-		
-	}
-	public double SumDebitA()
-	{
-		try
-		{
-		String query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'debit' AND transaction_type_id = 1";
+		case "SumCreditBP" :  query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'credit' AND transaction_type_id = 2";
 		statement = connection.createStatement();
 		
 		resultSet = statement.executeQuery(query);
-		
+
 		if(resultSet.next())
 		{
 			return resultSet.getDouble(1);
 		}
 		
-		}catch(SQLException e)
-		{
-			logger.error("Unable to execute query");
-		}
-		return 0;
-		
-	}
-	public double SumCreditBP()
-	{
-		try
-		{
-		String query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'debit' AND transaction_type_id = 2";
+		case "SumCreditT" :  query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'credit' AND transaction_type_id = 3";
 		statement = connection.createStatement();
 		
 		resultSet = statement.executeQuery(query);
-		
+
 		if(resultSet.next())
 		{
 			return resultSet.getDouble(1);
 		}
 		
-		}catch(SQLException e)
-		{
-			logger.error("Unable to execute query");
-		}
-		return 0;
-		
-	}
-	public double SumCreditT()
-	{
-		try
-		{
-		String query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'debit' AND transaction_type_id = 3";
+		case "SumCreditA" :   query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'credit' AND transaction_type_id = 1";
 		statement = connection.createStatement();
 		
 		resultSet = statement.executeQuery(query);
-		
+
 		if(resultSet.next())
 		{
 			return resultSet.getDouble(1);
+		}	
+		
 		}
 		
-		}catch(SQLException e)
+		/*if(type.equals("SumDebitBP"))
 		{
-			logger.error("Unable to execute query");
+			 query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'debit' AND transaction_type_id = 2";
+		}else if(type.equals("SumDebitT"))
+		{
+			query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'debit' AND transaction_type_id = 3";
+		}else if(type.equals("SumDebitA"))
+		{
+			query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'debit' AND transaction_type_id = 1";
+		}else if(type.equals("SumCreditBP"))
+		{
+			query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'credit' AND transaction_type_id = 2";
+		}else if(type.equals("SumCreditT"))
+		{
+			query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'credit' AND transaction_type_id = 3";
 		}
-		return 0;
+		else if(type.equals("SumCreditA"))
+		{
+			 query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'credit' AND transaction_type_id = 1";
+		}else
+		{
+			query = "0";
+			System.out.println("no query processeed");
+		}
 		
-	}
-	public double SumCreditA()
+		switch("") {}*/
+		
+		System.out.println("test");
+	
+		
+	
+	}catch(SQLException e)
 	{
-		try
-		{
-		String query =  "SELECT SUM(amount) FROM `transactions` WHERE card_type = 'debit' AND transaction_type_id = 1";
-		statement = connection.createStatement();
-		
-		resultSet = statement.executeQuery(query);
-		
-		if(resultSet.next())
-		{
-			return resultSet.getDouble(1);
-		}
-		
-		}catch(SQLException e)
-		{
-			logger.error("Unable to execute query");
-		}
-		return 0;
-		
+		logger.error("SQL Exception thrown");
 	}
+	return 0.0;
+	}
+	
 }
