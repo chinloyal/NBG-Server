@@ -218,13 +218,8 @@ public class UserProvider extends SQLProvider<User> {
 		int query_type_id = -1;
 
 		try {
-			// There's no need to add query types to the table every time you send a message, just add the query types to the database manually
-			/*// Add Query to query_type Table
-			String query = "INSERT INTO query_type (name) VALUES(?)";
-			preparedStatement = connection.prepareStatement(query);
-			preparedStatement.setString(1, queryType);
-
-			int numRowsAffected = preparedStatement.executeUpdate();*/
+			// There's no need to add query types to the table every time you send a message, 
+			// just add the query types to the database manually
 			
 			String query3= "SELECT id FROM query_type WHERE name = ?";
 			preparedStatement = connection.prepareStatement(query3);
