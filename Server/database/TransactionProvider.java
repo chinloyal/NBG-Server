@@ -15,11 +15,22 @@ public class TransactionProvider extends SQLProvider<Transaction> {
 	
 	public TransactionProvider() {
 		super(); 
-		initDatabase();
 	}
 	
 	protected void initDatabase() {
-
+		try {
+			String query = ""
+					+ "INSERT IGNORE INTO `transaction_type` (`id`, `name`) VALUES "
+					+ "(1, 'transfer') "
+					+ "(3, 'deposit') "
+					+ "(4, 'bill')";
+			
+			statement = connection.createStatement();
+			statement.executeUpdate(query);
+			
+		}catch(SQLException e) {
+			logger.error("Unable to init database.");
+		}
 	}
 	
 	public double getBalance(int user_id) {
@@ -41,11 +52,11 @@ public class TransactionProvider extends SQLProvider<Transaction> {
 					"	         ELSE 0 \r\n" + 
 					"	      END \r\n" + 
 					"	    	  ) AS balance  \r\n" + 
-					"		FROM transactions AS t  \r\n" + 
+					"		FROM "+ TABLE_NAME +" AS t  \r\n" + 
 					"		JOIN ( \r\n" + 
-					"	      	SELECT from_id AS user_id FROM transactions  \r\n" + 
+					"	      	SELECT from_id AS user_id FROM "+ TABLE_NAME +"  \r\n" + 
 					"	      	UNION  \r\n" + 
-					"	      	SELECT to_id FROM transactions \r\n" + 
+					"	      	SELECT to_id FROM "+ TABLE_NAME +" \r\n" + 
 					"	    	 ) AS all_users  \r\n" + 
 					"	  	ON t.from_id = all_users.user_id OR  \r\n" + 
 					"	     	t.to_id = all_users.user_id \r\n" + 
@@ -108,7 +119,7 @@ public class TransactionProvider extends SQLProvider<Transaction> {
 				UserProvider uProvider = new UserProvider();
 				User receiver = uProvider.getBy("email", transaction.getReceiver());
 				
-				if(receiver != null) {
+				if(receiver != null && receiver.getType().equals("customer")) {
 					if(receiver.getId() == UserProvider.getSession().getId())
 						return 0;
 					

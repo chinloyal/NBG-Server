@@ -10,6 +10,7 @@ import java.util.List;
 
 import communication.Request;
 import communication.Response;
+import database.ManagerProvider;
 import database.TransactionProvider;
 import database.UserProvider;
 import interfaces.Connection;
@@ -72,7 +73,7 @@ public class HandleRequests implements Runnable, Connection<Response> {
 									send(new Response(true));
 								else {
 									String message = "Something went wrong, what could've happened: "
-											+ "User with that email doesn't exist or we did something";
+											+ "Customer with that email doesn't exist or we did something";
 									send(new Response(false, message));
 								}
 							}else {
@@ -130,10 +131,19 @@ public class HandleRequests implements Runnable, Connection<Response> {
 
 					case "store_message":
 						List<String> cusMessage = (List<String>)request.getData();
-
-						UserProvider storeMessage = new UserProvider();
-						boolean success = storeMessage.storeMessage(cusMessage);
-						send(new Response(success));
+						
+						if(cusMessage.get(1).length() > 0) {
+							UserProvider storeMessage = new UserProvider();
+							boolean success = storeMessage.storeMessage(cusMessage);
+							send(new Response(success));
+						}else {
+							send(new Response(false, "Cannot send blank message."));
+						}
+						break;
+					case "values_for_chart":
+							ManagerProvider mprovider = new ManagerProvider();
+							
+							send(new Response(true, mprovider.getChartValues()));
 						break;
 					default:
 						send(new Response(false, "Invalid server action"));
@@ -148,7 +158,7 @@ public class HandleRequests implements Runnable, Connection<Response> {
 			closeConnection();
 			
 		}catch(EOFException e) {
-			
+			//Ignore EOFException
 		}catch(IOException e) {
 			logger.error("Could not close or get streams.");
 		}
