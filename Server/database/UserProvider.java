@@ -97,7 +97,12 @@ public class UserProvider extends SQLProvider<User> {
 				user.setType(resultSet.getString("type"));
 				
 				if(user.getType().equals("customer")) {
-					Photo photo = new Photo(resultSet.getString("file"));
+					Photo photo = null;
+					if(resultSet.getString("file") == null || resultSet.getString("file").equals("")){
+						photo = new Photo();
+					}else {
+						photo = new Photo(resultSet.getString("file"));
+					}
 					
 					user.setPhoto(photo);
 				}
@@ -147,14 +152,16 @@ public class UserProvider extends SQLProvider<User> {
 			int userRowsAffected = preparedStatement.executeUpdate();
 
 			if (user.getType().equals("customer") && user.getPhoto() != null) {
-				Photo profilePhoto = user.getPhoto();
-				int user_id = getLastInsertedId(preparedStatement);
+				if(!user.getPhoto().getName().equals(Photo.DEFAULT)) {
+					Photo profilePhoto = user.getPhoto();
+					int user_id = getLastInsertedId(preparedStatement);
 
-				query = "INSERT INTO photos (file, user_id) " + "VALUES ('" + profilePhoto.getName() + "', " + user_id
-						+ ")";
-				statement = connection.createStatement();
+					query = "INSERT INTO photos (file, user_id) " + "VALUES ('" + profilePhoto.getName() + "', " + user_id
+							+ ")";
+					statement = connection.createStatement();
 
-				statement.executeUpdate(query);
+					statement.executeUpdate(query);
+				}
 			}
 
 			return userRowsAffected;
@@ -186,6 +193,26 @@ public class UserProvider extends SQLProvider<User> {
 			}
 
 			return BCrypt.checkpw(userPassword, user.getPassword());
+		}
+		return false;
+	}
+	
+	public static boolean logout() {
+		ObjectOutputStream oos = null;
+		try {
+			oos = new ObjectOutputStream(new FileOutputStream(SESSION_FILE));
+			oos.writeObject(null);
+
+		} catch (IOException e) {
+			logger.error("Could not null session.");
+		}finally {
+			try {
+				oos.close();
+				return true;
+			}catch(IOException | NullPointerException e) {
+				logger.error("Could not close session output stream - logout.");
+			}
+
 		}
 		return false;
 	}

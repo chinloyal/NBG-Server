@@ -29,8 +29,8 @@ public class TransactionProvider extends SQLProvider<Transaction> {
 		try {
 			String query = ""
 					+ "INSERT IGNORE INTO `transaction_type` (`id`, `name`) VALUES "
-					+ "(1, 'transfer') "
-					+ "(3, 'deposit') "
+					+ "(1, 'transfer'), "
+					+ "(3, 'deposit'), "
 					+ "(4, 'bill')";
 			
 			statement = connection.createStatement();

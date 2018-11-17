@@ -163,6 +163,10 @@ public class HandleRequests implements Runnable, Connection<Response> {
 						}
 
 						break;
+					case "logout":
+						boolean res = UserProvider.logout();
+						send(new Response(res));
+						logger.debug("logging out: "+ res);
 					default:
 						send(new Response(false, "Invalid server action"));
 						break;
