@@ -12,6 +12,6 @@
 	<classpathentry kind="lib" path="lib/log4j-api-2.11.1.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-core-2.11.1.jar"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.40-bin.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/NBG-Resources"/>
+	<classpathentry kind="lib" path="lib/NBG-Resources.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
