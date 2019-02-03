@@ -177,22 +177,25 @@ public class UserProvider extends SQLProvider<User> {
 		User user = getBy("email", email);
 		if(user != null) {
 			ObjectOutputStream oos = null;
-			try {
-				oos = new ObjectOutputStream(new FileOutputStream(SESSION_FILE));
-				oos.writeObject(user);
-
-			} catch (IOException e) {
-				logger.error("Could not store session.");
-			}finally {
+			if(BCrypt.checkpw(userPassword, user.getPassword())) {
 				try {
-					oos.close();
-				}catch(IOException | NullPointerException e) {
-					logger.error("Could not close session output stream.");
+					oos = new ObjectOutputStream(new FileOutputStream(SESSION_FILE));
+					oos.writeObject(user);
+
+				} catch (IOException e) {
+					logger.error("Could not store session.");
+				}finally {
+					try {
+						oos.close();
+					}catch(IOException | NullPointerException e) {
+						logger.error("Could not close session output stream.");
+					}
+
 				}
-
+				return true;
+			}else {
+				return false;
 			}
-
-			return BCrypt.checkpw(userPassword, user.getPassword());
 		}
 		return false;
 	}
